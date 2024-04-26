@@ -6,9 +6,9 @@ defmodule Plaid.Transfer.User do
 
   @type t :: %__MODULE__{
           :legal_name => String.t(),
-          optional(:phone_number) => String.t(),
-          optional(:email_address) => String.t(),
-          optional(:address) => Plaid.Address.t()
+          :phone_number => String.t(),
+          :email_address => String.t(),
+          :address => Plaid.Address.t()
         }
 
   defstruct [:legal_name, :phone_number, :email_address, :address]
