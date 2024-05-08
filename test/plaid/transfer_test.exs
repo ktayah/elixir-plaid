@@ -118,4 +118,84 @@ defmodule Plaid.AccountsTest do
         secret: "abc"
       )
   end
+
+  test "/transfer/create", %{bypass: bypass, api_host: api_host} do
+    Bypass.expect_once(bypass, "POST", "/transfer/create", fn conn ->
+      Conn.resp(conn, 200, ~s<{
+        "transfer": {
+          "id": "460cbe92-2dcc-8eae-5ad6-b37d0ec90fd9",
+          "authorization_id": "c9f90aa1-2949-c799-e2b6-ea05c89bb586",
+          "ach_class": "ppd",
+          "account_id": "3gE5gnRzNyfXpBK5wEEKcymJ5albGVUqg77gr",
+          "funding_account_id": "8945fedc-e703-463d-86b1-dc0607b55460",
+          "type": "credit",
+          "user": {
+            "legal_name": "Anne Charleston",
+            "phone_number": "510-555-0128",
+            "email_address": "acharleston@email.com",
+            "address": {
+              "street": "123 Main St.",
+              "city": "San Francisco",
+              "region": "CA",
+              "postal_code": "94053",
+              "country": "US"
+            }
+          },
+          "amount": "12.34",
+          "description": "payment",
+          "created": "2020-08-06T17:27:15Z",
+          "refunds": [],
+          "status": "pending",
+          "sweep_status": [],
+          "network": "ach",
+          "cancellable": true,
+          "guarantee_decision": null,
+          "guarantee_decision_rationale": null,
+          "failure_reason": null,
+          "metadata": {
+            "key1": "value1",
+            "key2": "value2"
+          },
+          "iso_currency_code": "USD",
+          "standard_return_window": "2023-08-07",
+          "unauthorized_return_window": "2023-10-07",
+          "expected_settlement_date": "2023-08-04",
+          "originator_client_id": "569ed2f36b3a3a021713abc1",
+          "recurring_transfer_id": null,
+          "credit_funds_source": "sweep",
+          "facilitator_fee": "1.23",
+          "network_trace_id": null
+        }
+      }>)
+    end)
+
+    assert {:ok, _} =
+             Plaid.Transfer.create(
+               "access-prod-123xxx",
+               %{
+                 account_id: "3gE5gnRzNyfXpBK5wEEKcymJ5albGVUqg77gr",
+                 authorization_id: "231h012308h3101z21909sw",
+                 description: "Payment",
+                 metadata: %{key1: "value1", key2: "value2"},
+                 test_clock_id: "test_clock_id",
+                 facilitator_fee: "1.23"
+               },
+               test_api_host: api_host,
+               client_id: "123",
+               secret: "abc"
+             )
+  end
+
+  test "/transfer/cancel", %{bypass: bypass, api_host: api_host} do
+    Bypass.expect_once(bypass, "POST", "/transfer/cancel", fn conn ->
+      Conn.resp(conn, 200, ~s<{"request_id": "saKrIBuEB9qJZno"}>)
+    end)
+
+    assert {:ok, %Plaid.SimpleResponse{request_id: "saKrIBuEB9qJZno"}} =
+             Plaid.Transfer.cancel(%{transfer_id: "123004561178933"},
+               test_api_host: api_host,
+               client_id: "123",
+               secret: "abc"
+             )
+  end
 end
